@@ -1,8 +1,8 @@
-import { effect } from "../effect/effect";
+import { effect, stop } from "../effect/effect";
 import { reactive } from "../reactive/reactive";
 
 describe('effect', () => {
-    it.skip('happy path ', () => {
+    it('happy path ', () => {
         const user = reactive({
             age: 10,
         });
@@ -14,7 +14,7 @@ describe('effect', () => {
         user.age = 12;
         expect(newAage).toBe(13) 
     });
-    it.skip('should return runner when call effect', () => {
+    it('should return runner when call effect', () => {
         let foo = 10;
         let runner = effect(() => {
             foo++;
@@ -38,5 +38,30 @@ describe('effect', () => {
         expect(dummy).toBe(1);
         run();
         expect(dummy).toBe(2); 
+    });
+    it('should stop reactive', () => {
+        let dummy;
+        const obj = reactive({foo: 1});
+        const runner = effect(() => dummy = obj.foo + 1);
+        // obj.foo = 2;
+        expect(dummy).toBe(2);
+        // 停止响应式就是将依赖从deps中剔除
+        stop(runner);
+        obj.foo = 3;
+        expect(dummy).toBe(2);
+        runner();
+        expect(dummy).toBe(4); 
+    });
+    it('should call onStop after stop', () => {
+        let dummy;
+        const obj = reactive({foo: 1});
+        const onStop = jest.fn(() => {});
+        const runner = effect(() => dummy = obj.foo + 1, { onStop });
+        // obj.foo = 2;
+        expect(dummy).toBe(2);
+        // 停止响应式就是将依赖从deps中剔除
+        stop(runner);
+        expect(onStop).toHaveBeenCalledTimes(1)
+         
     });
 });
