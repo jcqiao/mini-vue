@@ -1,6 +1,7 @@
 class ReactiveEffect {
     private _fn: any;
-    constructor(fn) {
+    // 使用public声明的变量 外部effect可以直接调用到
+    constructor(fn, public scheduler) {
         this._fn = fn;
     }
     run() {
@@ -9,9 +10,9 @@ class ReactiveEffect {
     }
 }
 let activeEffect; 
-export function effect(fn) {
+export function effect(fn, options:any = {}) {
     // 1. 创建effect实例 为的是将effect添加到dep上
-    const _effect = new ReactiveEffect(fn);
+    const _effect = new ReactiveEffect(fn, options.scheduler);
     // 2. 初始化时执行下fn
     _effect.run();
     return _effect.run.bind(_effect)
@@ -44,6 +45,10 @@ export function trigger(target, key) {
     const depsMap = targetMaps.get(target);
     const dep = depsMap.get(key);
     for (const effect of dep) {
-        effect.run();
+        if(effect.scheduler) {
+            effect.scheduler();
+        } else {
+            effect.run();
+        }
     }
 }
