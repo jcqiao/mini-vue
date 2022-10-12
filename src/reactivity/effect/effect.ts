@@ -24,6 +24,10 @@ class ReactiveEffect {
        }
     }
 }
+/**
+ * 从响应式收集里删除当前effect
+ * @param effect effect实例
+ */
 function cleanupEffect(effect: any) {
     effect.deps.forEach((dep) => {
         // dep是个set dep删除当前实例
@@ -32,6 +36,12 @@ function cleanupEffect(effect: any) {
 }
 
 let activeEffect; 
+/**
+ * 创建effect实例 并执行fn 返回run函数
+ * @param fn function
+ * @param options option
+ * @returns runner function
+ */
 export function effect(fn, options:any = {}) {
     // 1. 创建effect实例 为的是将effect添加到dep上
     const _effect = new ReactiveEffect(fn, options.scheduler);
@@ -51,6 +61,11 @@ let targetMaps = new Map();
 //         key2: [fn1, fn2]
 //     }
 // }
+/**
+ * 收集响应式依赖
+ * @param target obj
+ * @param key key
+ */
 export function track(target, key) {
     // target -> key -> dep
     let depsMap = targetMaps.get(target); // 拿到key的map
@@ -72,6 +87,11 @@ export function track(target, key) {
     }
 }
 
+/**
+ * 触发响应式依赖
+ * @param target 
+ * @param key 
+ */
 export function trigger(target, key) {
     // 将收集到的fn执行
     const depsMap = targetMaps.get(target);
@@ -85,6 +105,10 @@ export function trigger(target, key) {
     }
 }
 
+/**
+ * 停止当前effect的响应
+ * @param runner fn
+ */
 export function stop(runner) {
-    runner.effect.stop()
+    runner.effect.stop();
 }
