@@ -16,3 +16,20 @@ export function reactive(raw) {
         }
     })
 }
+/**
+ * 只读对象
+ * @param raw object
+ * @returns proxy
+ */
+export function readonly(raw) {
+    return new Proxy(raw, {
+        get(target,key) {
+            const res = Reflect.get(target, key);
+            return res;
+        },
+        set(target, key: any, value) {
+            console.warn(`key ${key} set failed becauseof target is readonly: ${target}`); 
+            return true;
+        },
+    })
+}
