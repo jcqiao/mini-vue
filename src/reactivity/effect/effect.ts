@@ -11,7 +11,16 @@ class ReactiveEffect {
     }
     run() {
         activeEffect = this;
-        return this._fn();
+        // 调用过stop后 active一直是false 
+        if (!this.active) {
+            return this._fn();
+        }
+        // 没调用stop
+        shouldTrack = true;
+        const res = this._fn();
+        // 全局变量 需要reset下
+        shouldTrack = false;
+        return res;
     }
     stop() {
         // 通过当前effect 如何找到deps 在track中dep.add了activeEffect;反过来activeEffect中添加dep
@@ -32,10 +41,12 @@ function cleanupEffect(effect: any) {
     effect.deps.forEach((dep) => {
         // dep是个set dep删除当前实例
         dep.delete(effect);
-    })
+    });
+    effect.deps.length = 0;
 }
 
 let activeEffect; 
+let shouldTrack;
 /**
  * 创建effect实例 并执行fn 返回run函数
  * @param fn function
@@ -67,6 +78,10 @@ let targetMaps = new Map();
  * @param key key
  */
 export function track(target, key) {
+    // 若该对象没有通过effect创建 就没有activeEffect
+    if (!activeEffect) return;
+    // 不需要跟踪
+    if(!shouldTrack) return;
     // target -> key -> dep
     let depsMap = targetMaps.get(target); // 拿到key的map
     if (!depsMap) {
@@ -78,13 +93,12 @@ export function track(target, key) {
         dep = new Set();
         depsMap.set(key, dep); // 别忘记存起来
     }
+    // 该变量不需要track 就不需要往dep中添加直接return掉
     dep.add(activeEffect);
     // 反向收集当前effect的dep
     // activeEffect就是effect实例 所以deps声明在ReactiveEffect中即可
     // 若只是使用了reactive函数没有effect函数 那么不会有activeEffect
-    if (activeEffect) {
-        activeEffect.deps.push(dep);
-    }
+    activeEffect.deps.push(dep);
 }
 
 /**

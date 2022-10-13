@@ -42,19 +42,13 @@ describe('effect', () => {
     it('should stop reactive', () => {
         let dummy;
         const obj = reactive({foo: 1});
-        const runner = effect(() => dummy = obj.foo + 1);
-        // obj.foo = 2;
+        const runner = effect(() => dummy = obj.foo);
+        obj.foo = 2;
         expect(dummy).toBe(2);
         // 停止响应式就是将依赖从deps中剔除
         stop(runner);
-        // 此时的stop功能失效了因为 obj.foo = obj.foo + 1 又触发了get set事件 触发响应式依赖收集触发
-        // ++obj.foo;
-        // expect(dummy).not.toBe(2);
-        // expect(dummy).toBe(3);
-        obj.foo = 3;
-        expect(dummy).toBe(2);
-        runner();
-        expect(dummy).toBe(4); 
+        obj.foo++;
+        expect(dummy).toBe(2); 
     });
     it('should call onStop after stop', () => {
         let dummy;
