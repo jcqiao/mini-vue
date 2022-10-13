@@ -1,4 +1,4 @@
-import { readonly } from "../reactive/reactive";
+import { isReadOnly, readonly } from "../reactive/reactive";
 
 describe("readonly", () => {
     it("happy path", () => {
@@ -8,6 +8,7 @@ describe("readonly", () => {
         const observed = readonly(original);
         expect(observed).not.toBe(original);
         expect(observed.foo).toBe(1);   
+        expect(isReadOnly(observed)).toBe(true);
     })
     it('warn after set value', () => {
         console.warn = jest.fn()
